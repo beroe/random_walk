@@ -77,3 +77,53 @@ What is happening here? basically, complexity starts at 0, and has nowhere to go
 
 What does this tell us? Many things. But one of them is that we shouldn't be surprised by evolutionary decreases in complexity within lineages. Organisms lose all sorts of complex traits throughout the course of evolution.
 
+### Variation, starting with some complexity
+
+```{r echo=FALSE}
+
+walk1 <- function(x, boundary = 0) {
+    y <- vector()
+    i = 0
+    for (a in x) {
+        i = i + 1
+        b = 100
+        if (i > 1) {
+            b = tail(y, n = 1) + a
+        }
+        if (b > boundary) {
+            y[i] = b
+        } else {
+            y[i] = boundary
+        }
+    }
+    
+    return(y)
+}
+
+D.list <- list()
+
+for (a in 1:nlineages) {
+    D.list[[a]] <- walk1(rnorm(ngenerations))
+}
+
+D <- do.call(cbind.data.frame, c(D.list))
+
+colnames(D) <- 1:ncol(D)
+
+```
+
+```{r fig.width=10, fig.height=6, message=FALSE, echo=FALSE}
+library(ggplot2)
+require(reshape)
+
+D <- cbind(list(time=1:nrow(D)),D)
+
+df <- melt(D ,  id = 'time', variable_name = 'series')
+
+ggplot(df, aes(time,value)) + 
+geom_line(aes(colour = series, alpha=0.25)) + 
+stat_summary(fun.y = 'mean', colour = 'blue', size = 2, geom = 'line') +
+stat_summary(fun.y = 'max', colour = 'red', size = 2, geom = 'line') +
+theme(legend.position="none")
+
+```
